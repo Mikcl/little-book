@@ -55,7 +55,6 @@ const todaysVirtue = (): string => {
 const initialState = {
   score: 0,
   streak: 0,
-  virtue: todaysVirtue(),
   isSuccess: null,
 };
 
