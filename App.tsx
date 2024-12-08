@@ -15,7 +15,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   Colors,
-  Header,
 } from 'react-native/Libraries/NewAppScreen';
 
 interface Virtue {
@@ -145,7 +144,7 @@ function Daily(): React.JSX.Element {
   return (
     <View style={styles.container}>
       <Text style={styles.score}>
-        <Text role="img" aria-label="star">⭐</Text> {state.score}.
+        <Text role="img" aria-label="star">⭐</Text> {state.score}
         <Text role="img" aria-label="fire">🔥</Text> {state.streak}
       </Text>
 
@@ -154,8 +153,8 @@ function Daily(): React.JSX.Element {
       </Text>
 
       <View style={styles.buttonContainer}>
-        <Button title="✔️ Pass" onPress={handlePass} />
-        <Button title="❌ Fail" onPress={handleFail} />
+        <Button title="❌Fail" onPress={handleFail} />
+        <Button title="Pass✔️" onPress={handlePass} />
       </View>
 
       <Text style={styles.details}>
@@ -183,7 +182,6 @@ function App(): React.JSX.Element {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
-        <Header />
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
