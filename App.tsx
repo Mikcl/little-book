@@ -19,44 +19,39 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 
 interface Virtue {
+  name: string;
   emoji: string;
   description: string;
 }
 
 const virtuesDict: Record<string, Virtue> = {
-  'Temperance': { emoji: '🧘‍♂️', description: 'Practice moderation in all things and avoid excess.' },
-  'Silence': { emoji: '🕊️', description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.' },
-  'Order': { emoji: '🗂️', description: 'Let all things have their place; let each part of your business have its time.' },
-  'Resolution': { emoji: '💪', description: 'Resolve to perform what you ought; perform without fail what you resolve.' },
-  'Frugality': { emoji: '🌱', description: 'Make no expense but to do good to others or yourself; waste nothing.' },
-  'Industry': { emoji: '🛠️', description: 'Always be engaged in something useful; avoid idleness.' },
-  'Sincerity': { emoji: '🤝', description: 'Use no hurtful deceit; think innocently and justly, and speak accordingly.' },
-  'Justice': { emoji: '⚖️', description: 'Wrong none by doing injuries or omitting benefits that are your duty.' },
-  'Moderation': { emoji: '🛑', description: 'Avoid extremes; forbear resenting injuries as much as you think they deserve.' },
-  'Cleanliness': { emoji: '✨', description: 'Keep your body, clothes, and habitation clean.' },
-  'Tranquility': { emoji: '🌳', description: 'Be not disturbed at trifles, or at accidents common or unavoidable.' },
-  'Chastity': { emoji: '❤️', description: 'Rarely use venery but for health or offspring; never to dullness, weakness, or the injury of your own or another’s peace or reputation.' },
-  'Humility': { emoji: '😊', description: 'Imitate Jesus and Socrates.' },
+  'Temperance': { name: 'Temperance', emoji: '🧘‍♂️', description: 'Practice moderation in all things and avoid excess.' },
+  'Silence': { name: 'Silence', emoji: '🕊️', description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.' },
+  'Order': { name: 'Order', emoji: '🗂️', description: 'Let all things have their place; let each part of your business have its time.' },
+  'Resolution': { name: 'Resolution', emoji: '💪', description: 'Resolve to perform what you ought; perform without fail what you resolve.' },
+  'Frugality': { name: 'Frugality', emoji: '🌱', description: 'Make no expense but to do good to others or yourself; waste nothing.' },
+  'Industry': { name: 'Industry', emoji: '🛠️', description: 'Always be engaged in something useful; avoid idleness.' },
+  'Sincerity': { name: 'Sincerity', emoji: '🤝', description: 'Use no hurtful deceit; think innocently and justly, and speak accordingly.' },
+  'Justice': { name: 'Justice', emoji: '⚖️', description: 'Wrong none by doing injuries or omitting benefits that are your duty.' },
+  'Moderation': { name: 'Moderation', emoji: '🛑', description: 'Avoid extremes; forbear resenting injuries as much as you think they deserve.' },
+  'Cleanliness': { name: 'Cleanliness', emoji: '✨', description: 'Keep your body, clothes, and habitation clean.' },
+  'Tranquility': { name: 'Tranquility', emoji: '🌳', description: 'Be not disturbed at trifles, or at accidents common or unavoidable.' },
+  'Chastity': { name: 'Chastity', emoji: '❤️', description: 'Rarely use venery but for health or offspring; never to dullness, weakness, or the injury of your own or another’s peace or reputation.' },
+  'Humility': { name: 'Humility', emoji: '😊', description: 'Imitate Jesus and Socrates.' },
 };
 
-const virtues = [
-  'Temperance', 'Silence', 'Order', 'Resolution',
-  'Frugality', 'Industry', 'Sincerity',
-  'Justice', 'Moderation', 'Cleanliness',
-  'Tranquility', 'Chastity', 'Humility',
-];
+const virtues = Object.keys(virtuesDict);
 
 interface UserState {
   score: number,
   streak: number,
-  virtue: string,
   // success === 'pass'
   isSuccess: string | null,
 }
 
 const todaysVirtue = (): string => {
-  return virtues[new Date().getDay() % virtues.length]
-}
+  return virtues[new Date().getDay() % virtues.length];
+};
 
 const initialState = {
   score: 0,
@@ -99,7 +94,6 @@ function Daily(): React.JSX.Element {
             score: score ? parseInt(score, 10) : 0,
             streak: streak ? parseInt(streak, 10) : 0,
             isSuccess: todayStatus,
-            virtue: todaysVirtue(),
           },
         });
       } catch (error) {
@@ -146,7 +140,7 @@ function Daily(): React.JSX.Element {
     dispatch({ type: 'FAIL' });
   };
 
-  const virtueDetails = virtuesDict[state.virtue];
+  const virtueDetails = virtuesDict[todaysVirtue()];
 
   return (
     <View style={styles.container}>
@@ -156,7 +150,7 @@ function Daily(): React.JSX.Element {
       </Text>
 
       <Text style={styles.virtue}>
-        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text> {state.virtue} <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
+        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text> {virtueDetails.name} <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
       </Text>
 
       <View style={styles.buttonContainer}>
@@ -165,7 +159,7 @@ function Daily(): React.JSX.Element {
       </View>
 
       <Text style={styles.details}>
-        {state.virtue} is one of the 13 virtues outlined by Benjamin Franklin. It focuses on...
+        {virtueDetails.name} is one of the 13 virtues outlined by Benjamin Franklin. It focuses on...
       </Text>
     </View>
   );
