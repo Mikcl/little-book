@@ -18,7 +18,12 @@ import {
   Header,
 } from 'react-native/Libraries/NewAppScreen';
 
-const virtuesDict = {
+interface Virtue {
+  emoji: string;
+  description: string;
+}
+
+const virtuesDict: Record<string, Virtue> = {
   'Temperance': { emoji: '🧘‍♂️', description: 'Practice moderation in all things and avoid excess.' },
   'Silence': { emoji: '🕊️', description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.' },
   'Order': { emoji: '🗂️', description: 'Let all things have their place; let each part of your business have its time.' },
@@ -41,25 +46,37 @@ const virtues = [
   'Tranquility', 'Chastity', 'Humility',
 ];
 
+interface UserState {
+  score: number,
+  streak: number,
+  virtue: string,
+  // success === 'pass'
+  isSuccess: string | null,
+}
+
+const todaysVirtue = (): string => {
+  return virtues[new Date().getDay() % virtues.length]
+}
+
 const initialState = {
   score: 0,
   streak: 0,
-  todayVirtue: virtues[new Date().getDay() % virtues.length],
-  dailyStatus: null,
+  virtue: todaysVirtue(),
+  isSuccess: null,
 };
 
 const devMode = true;
 
 // Define reducer
-function reducer(state, action) {
+function reducer(state: UserState, action: {type: string, payload?: UserState}): UserState {
   switch (action.type) {
     case 'LOAD_STATE':
       return { ...state, ...action.payload };
     case 'PASS':
-      const newStreak = state.dailyStatus === 'pass' ? state.streak + 1 : 1;
-      return { ...state, score: state.score + 1, dailyStatus: 'pass', streak: newStreak };
+      const newStreak = state.isSuccess ? state.streak + 1 : 1;
+      return { ...state, score: state.score + 1, isSuccess: 'pass', streak: newStreak };
     case 'FAIL':
-      return { ...state, dailyStatus: 'fail', streak: 0 };
+      return { ...state, isSuccess: 'fail', streak: 0 };
     default:
       return state;
   }
@@ -81,7 +98,8 @@ function Daily(): React.JSX.Element {
           payload: {
             score: score ? parseInt(score, 10) : 0,
             streak: streak ? parseInt(streak, 10) : 0,
-            dailyStatus: todayStatus,
+            isSuccess: todayStatus,
+            virtue: todaysVirtue(),
           },
         });
       } catch (error) {
@@ -97,22 +115,22 @@ function Daily(): React.JSX.Element {
       try {
         await AsyncStorage.setItem('score', state.score.toString());
         await AsyncStorage.setItem('streak', state.streak.toString());
-        if (state.dailyStatus) {
-          await AsyncStorage.setItem(getTodayKey(), state.dailyStatus);
+        if (state.isSuccess) {
+          await AsyncStorage.setItem(getTodayKey(), state.isSuccess);
         }
       } catch (error) {
         console.error('Failed to save state:', error);
       }
     };
     saveState();
-  }, [state.score, state.dailyStatus, state.streak]);
+  }, [state.score, state.isSuccess, state.streak]);
 
   // Helper function to get today's storage key
   const getTodayKey = () => `status-${new Date().toISOString().split('T')[0]}`;
 
   // Handle pass
   const handlePass = () => {
-    if (state.dailyStatus && !devMode) {
+    if (state.isSuccess && !devMode) {
       Alert.alert('You have already recorded your progress for today!');
       return;
     }
@@ -121,14 +139,14 @@ function Daily(): React.JSX.Element {
 
   // Handle fail
   const handleFail = () => {
-    if (state.dailyStatus && !devMode) {
+    if (state.isSuccess && !devMode) {
       Alert.alert('You have already recorded your progress for today!');
       return;
     }
     dispatch({ type: 'FAIL' });
   };
 
-  const todayVirtueDetails = virtuesDict[state.todayVirtue];
+  const virtueDetails = virtuesDict[state.virtue];
 
   return (
     <View style={styles.container}>
@@ -138,7 +156,7 @@ function Daily(): React.JSX.Element {
       </Text>
 
       <Text style={styles.virtue}>
-        <Text role="img" aria-label="virtue">{todayVirtueDetails.emoji}</Text> {state.todayVirtue} <Text role="img" aria-label="virtue">{todayVirtueDetails.emoji}</Text>
+        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text> {state.virtue} <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
       </Text>
 
       <View style={styles.buttonContainer}>
@@ -147,7 +165,7 @@ function Daily(): React.JSX.Element {
       </View>
 
       <Text style={styles.details}>
-        {state.todayVirtue} is one of the 13 virtues outlined by Benjamin Franklin. It focuses on...
+        {state.virtue} is one of the 13 virtues outlined by Benjamin Franklin. It focuses on...
       </Text>
     </View>
   );
