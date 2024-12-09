@@ -218,24 +218,27 @@ function Daily(): React.JSX.Element {
   const virtueDetails = virtuesDict[todaysVirtue()];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.score}>
-        <Text role="img" aria-label="star">🌸</Text> {scoring(state.entries)}
-        <Text role="img" aria-label="fire">🔥</Text> {currentStreak(state.entries)}
-        <Text role="img" aria-label="fire">🔴</Text> {failures(state.entries)}
-      </Text>
+    <View style={styles.dailyContainer}>
+      <View style={styles.topSection}>
+        <Text style={styles.leftScore}>🔥 {currentStreak(state.entries)}</Text>
+        <Text style={styles.rightScore}>
+          🌸 {scoring(state.entries)} 🔴 {failures(state.entries)}
+        </Text>
+      </View>
 
-      <Text style={styles.virtue}>{virtueDetails.name}</Text>
-      <Text style={styles.details}>{virtueDetails.description}</Text>
-      <Text style={styles.virtue}>
-        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
-        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
-        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
-      </Text>
+      <View style={styles.middleSection}>
+        <Text style={styles.virtue}>{virtueDetails.name}</Text>
+        <Text style={styles.details}>{virtueDetails.description}</Text>
+        <Text style={styles.virtue}>
+          {virtueDetails.emoji}
+          {virtueDetails.emoji}
+          {virtueDetails.emoji}
+        </Text>
+      </View>
 
       <View style={styles.buttonContainer}>
-        <Button title="❌Fail" onPress={handleFail} />
-        <Button title="Pass✔️" onPress={handlePass} />
+        <Button title="❌ Fail" onPress={handleFail} />
+        <Button title="Pass ✔️" onPress={handlePass} />
       </View>
     </View>
   );
@@ -303,17 +306,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  buttonContainer: {
+  dailyContainer: {
+    backgroundColor: '#fff',
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  topSection: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 40,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: "50%",
+  },
+  leftScore: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF4500', // Fire color
+  },
+  rightScore: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000', // Black for scores
+  },
+  middleSection: {
+    flex: 1,
+    justifyContent: 'center', // Center virtue details
+    alignItems: 'center',
+    textAlign: 'center',
   },
   details: {
     fontSize: 16,
-    marginBottom: 20,
+    color: '#555', // Grey for description
     textAlign: 'center',
-    color: '#555',
-    maxWidth: 300,
+    marginVertical: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // Evenly space the buttons
+    marginVertical: 20,
   },
 });
 
