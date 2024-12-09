@@ -58,6 +58,24 @@ const fromTimestamp = (yyyymmdd: string): Date => {
   return new Date(yearFromStr, monthFromStr, dayFromStr);
 };
 
+const getWeekOfYear = (date: Date) => {
+  const targetDate = new Date(date);
+  targetDate.setHours(0, 0, 0, 0); // Reset time to midnight
+
+  // Set to Thursday in the current week (ISO week starts on Monday)
+  targetDate.setDate(targetDate.getDate() + 3 - ((targetDate.getDay() + 6) % 7));
+
+  // January 4th is always in week 1 (ISO rule)
+  const firstWeek: Date = new Date(targetDate.getFullYear(), 0, 4);
+  const diff = targetDate.getTime() - firstWeek.getTime();
+
+  const daysDiff = Math.round(diff / (24 * 60 * 60 * 1000));
+
+  // zero index
+  // some years have 53 weeks, lets just duplicate the last week in that case
+  return Math.min(Math.floor(daysDiff / 7), 51);
+};
+
 interface Entry {
   date: string;
   isSuccess: boolean;
@@ -125,9 +143,12 @@ interface UserState {
   entries: Entry[]
 }
 
+const getVirtue = (yyyymmdd: string): string => {
+  return virtues[getWeekOfYear(fromTimestamp(yyyymmdd)) % virtues.length];
+};
+
 const todaysVirtue = (): string => {
-  // FIXME: should be one per week
-  return virtues[new Date().getDay() % virtues.length];
+  return getVirtue(today());
 };
 
 const initialState: UserState = {
