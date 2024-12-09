@@ -1,6 +1,5 @@
 import React, { useReducer, useEffect } from 'react';
 import {
-  Alert,
   Button,
   SafeAreaView,
   ScrollView,
@@ -23,6 +22,7 @@ interface Virtue {
   description: string;
 }
 
+// FIXME: make better descriptions
 const virtuesDict: Record<string, Virtue> = {
   'Temperance': { name: 'Temperance', emoji: '🧘‍♂️', description: 'Practice moderation in all things and avoid excess.' },
   'Silence': { name: 'Silence', emoji: '🕊️', description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.' },
@@ -41,35 +41,111 @@ const virtuesDict: Record<string, Virtue> = {
 
 const virtues = Object.keys(virtuesDict);
 
+const today = (): string => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+};
+
+
+const fromTimestamp = (yyyymmdd: string): Date => {
+  const yyyymmddString = yyyymmdd;
+  const yearFromStr = parseInt(yyyymmddString.substring(0, 4), 10);
+  const monthFromStr = parseInt(yyyymmddString.substring(4, 6), 10) - 1;
+  const dayFromStr = parseInt(yyyymmddString.substring(6, 8), 10);
+  return new Date(yearFromStr, monthFromStr, dayFromStr);
+};
+
+interface Entry {
+  date: string;
+  isSuccess: boolean;
+}
+
+
+const entriesByDate = (entries: Entry[]): Record<string, Entry> => {
+  return entries.reduce((acc, entry) => {
+    acc[entry.date] = entry;
+    return acc;
+  }, {} as Record<string, Entry>);
+};
+
+const scoring = (entries: Entry[]): number => {
+  const uniqueEntries = entriesByDate(entries);
+
+  const filteredEntries = Object.values(uniqueEntries);
+
+  return filteredEntries
+    // .filter(entry => fromTimestamp(entry.date) >= startDate)
+    .reduce((score, entry) => score + (entry.isSuccess ? 1 : 0), 0);
+};
+
+const failures = (entries: Entry[]): number => {
+  const uniqueEntries = entriesByDate(entries);
+
+  const filteredEntries = Object.values(uniqueEntries);
+
+  return filteredEntries
+    .reduce((score, entry) => score + (entry.isSuccess ? 0 : 1), 0);
+};
+
+
+const currentStreak = (entries: Entry[]): number => {
+  const uniqueEntries = entriesByDate(entries);
+
+  // sort descending by date
+  const filteredEntries = Object.values(uniqueEntries).sort(
+    (a, b) => parseInt(b.date, 10) - parseInt(a.date, 10)
+  );
+
+  let streak = 0;
+  let prevDate: Date | null = null;
+
+  for (const entry of filteredEntries) {
+    const entryDate = fromTimestamp(entry.date);
+
+    if (prevDate && (prevDate.getTime() - entryDate.getTime()) !== 24 * 60 * 60 * 1000) {
+      break; // not consecutive
+    }
+
+    prevDate = entryDate;
+    if (entry.isSuccess) {
+      streak++;
+    } else {
+      break; // failure
+    }
+  }
+
+  return streak;
+};
+
+
 interface UserState {
-  score: number,
-  streak: number,
-  // success === 'pass'
-  isSuccess: string | null,
+  entries: Entry[]
 }
 
 const todaysVirtue = (): string => {
+  // FIXME: should be one per week
   return virtues[new Date().getDay() % virtues.length];
 };
 
-const initialState = {
-  score: 0,
-  streak: 0,
-  isSuccess: null,
+const initialState: UserState = {
+  entries: [],
 };
 
-const devMode = true;
-
-// Define reducer
 function reducer(state: UserState, action: {type: string, payload?: UserState}): UserState {
   switch (action.type) {
     case 'LOAD_STATE':
       return { ...state, ...action.payload };
     case 'PASS':
-      const newStreak = state.isSuccess ? state.streak + 1 : 1;
-      return { ...state, score: state.score + 1, isSuccess: 'pass', streak: newStreak };
+      const passedEntries = state.entries;
+      passedEntries.push({date: today(), isSuccess: true});
+      return { ...state, entries: passedEntries  };
     case 'FAIL':
-      return { ...state, isSuccess: 'fail', streak: 0 };
+      const failedEntries = state.entries;
+      failedEntries.push({date: today(), isSuccess: false});
+      return { ...state, entries: failedEntries };
     default:
       return state;
   }
@@ -79,19 +155,16 @@ function reducer(state: UserState, action: {type: string, payload?: UserState}):
 function Daily(): React.JSX.Element {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Load state from AsyncStorage on mount
   useEffect(() => {
     const loadState = async () => {
       try {
-        const score = await AsyncStorage.getItem('score');
-        const streak = await AsyncStorage.getItem('streak');
-        const todayStatus = await AsyncStorage.getItem(getTodayKey());
+        const entriesString = await AsyncStorage.getItem('ENTRIES');
+        const entries = entriesString != null ? JSON.parse(entriesString) as Entry[] : [];
+
         dispatch({
           type: 'LOAD_STATE',
           payload: {
-            score: score ? parseInt(score, 10) : 0,
-            streak: streak ? parseInt(streak, 10) : 0,
-            isSuccess: todayStatus,
+            entries,
           },
         });
       } catch (error) {
@@ -101,40 +174,23 @@ function Daily(): React.JSX.Element {
     loadState();
   }, []);
 
-  // Save score and daily status to AsyncStorage
   useEffect(() => {
     const saveState = async () => {
       try {
-        await AsyncStorage.setItem('score', state.score.toString());
-        await AsyncStorage.setItem('streak', state.streak.toString());
-        if (state.isSuccess) {
-          await AsyncStorage.setItem(getTodayKey(), state.isSuccess);
-        }
+        const uniqueEntries = Object.values(entriesByDate(state.entries));
+        await AsyncStorage.setItem('ENTRIES', JSON.stringify(uniqueEntries));
       } catch (error) {
         console.error('Failed to save state:', error);
       }
     };
     saveState();
-  }, [state.score, state.isSuccess, state.streak]);
+  }, [state.entries]);
 
-  // Helper function to get today's storage key
-  const getTodayKey = () => `status-${new Date().toISOString().split('T')[0]}`;
-
-  // Handle pass
   const handlePass = () => {
-    if (state.isSuccess && !devMode) {
-      Alert.alert('You have already recorded your progress for today!');
-      return;
-    }
     dispatch({ type: 'PASS' });
   };
 
-  // Handle fail
   const handleFail = () => {
-    if (state.isSuccess && !devMode) {
-      Alert.alert('You have already recorded your progress for today!');
-      return;
-    }
     dispatch({ type: 'FAIL' });
   };
 
@@ -143,8 +199,9 @@ function Daily(): React.JSX.Element {
   return (
     <View style={styles.container}>
       <Text style={styles.score}>
-        <Text role="img" aria-label="star">⭐</Text> {state.score}
-        <Text role="img" aria-label="fire">🔥</Text> {state.streak}
+        <Text role="img" aria-label="star">🌸</Text> {scoring(state.entries)}
+        <Text role="img" aria-label="fire">🔥</Text> {currentStreak(state.entries)}
+        <Text role="img" aria-label="fire">🔴</Text> {failures(state.entries)}
       </Text>
 
       <Text style={styles.virtue}>
