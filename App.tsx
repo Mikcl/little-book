@@ -225,18 +225,18 @@ function Daily(): React.JSX.Element {
         <Text role="img" aria-label="fire">🔴</Text> {failures(state.entries)}
       </Text>
 
+      <Text style={styles.virtue}>{virtueDetails.name}</Text>
+      <Text style={styles.details}>{virtueDetails.description}</Text>
       <Text style={styles.virtue}>
-        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text> {virtueDetails.name} <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
+        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
+        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
+        <Text role="img" aria-label="virtue">{virtueDetails.emoji}</Text>
       </Text>
 
       <View style={styles.buttonContainer}>
         <Button title="❌Fail" onPress={handleFail} />
         <Button title="Pass✔️" onPress={handlePass} />
       </View>
-
-      <Text style={styles.details}>
-        {virtueDetails.name} is one of the 13 virtues outlined by Benjamin Franklin. It focuses on...
-      </Text>
     </View>
   );
 
@@ -299,8 +299,8 @@ const styles = StyleSheet.create({
   },
   virtue: {
     fontSize: 22,
-    fontStyle: 'italic',
-    marginBottom: 30,
+    marginBottom: 20,
+    fontWeight: 'bold',
     textAlign: 'center',
   },
   buttonContainer: {
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   },
   details: {
     fontSize: 16,
-    marginTop: 30,
+    marginBottom: 20,
     textAlign: 'center',
     color: '#555',
     maxWidth: 300,
