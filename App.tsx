@@ -65,6 +65,7 @@ function weeksBetween(date1: Date, date2: Date): number {
 }
 
 const getWeekOfYear = (date: Date) => {
+  // FIXME: consider making the week start on sunday instead
   const targetDate = new Date(date);
   targetDate.setHours(0, 0, 0, 0); // Reset time to midnight
 
@@ -83,6 +84,7 @@ const getWeekOfYear = (date: Date) => {
 };
 
 function dayIndex(yyyymmdd: string) {
+  // FIXME: consider making the week start on sunday instead
   const date = fromTimestamp(yyyymmdd);
   const day = date.getDay();
   return (day + 6) % 7;
@@ -107,7 +109,6 @@ const scoring = (entries: Entry[]): number => {
   const filteredEntries = Object.values(uniqueEntries);
 
   return filteredEntries
-    // .filter(entry => fromTimestamp(entry.date) >= startDate)
     .reduce((score, entry) => score + (entry.isSuccess ? 1 : 0), 0);
 };
 
@@ -138,14 +139,8 @@ const currentStreak = (entries: Entry[]): number => {
     if (prevDate && (prevDate.getTime() - entryDate.getTime()) !== 24 * 60 * 60 * 1000) {
       break; // not consecutive
     }
-
     prevDate = entryDate;
-    // FIXME: consider allowing failures as a streak?
-    if (entry.isSuccess) {
-      streak++;
-    } else {
-      break; // failure
-    }
+    streak++;
   }
 
   return streak;
@@ -310,6 +305,7 @@ function Daily(): React.JSX.Element {
       </View>
 
       <View style={styles.buttonContainer}>
+        {/* FIXME: show whether something has been selected for the day */}
         <Button title="❌ Fail" onPress={handleFail} />
         <Button title="Pass ✔️" onPress={handlePass} />
       </View>
