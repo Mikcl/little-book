@@ -58,6 +58,12 @@ const fromTimestamp = (yyyymmdd: string): Date => {
   return new Date(yearFromStr, monthFromStr, dayFromStr);
 };
 
+function weeksBetween(date1: Date, date2: Date): number {
+  const msInWeek = 7 * 24 * 60 * 60 * 1000;
+  const diffInMs = Math.abs(date1.getTime() - date2.getTime());
+  return Math.floor(diffInMs / msInWeek);
+}
+
 const getWeekOfYear = (date: Date) => {
   const targetDate = new Date(date);
   targetDate.setHours(0, 0, 0, 0); // Reset time to midnight
@@ -75,6 +81,12 @@ const getWeekOfYear = (date: Date) => {
   // some years have 53 weeks, lets just duplicate the last week in that case
   return Math.min(Math.floor(daysDiff / 7), 51);
 };
+
+function dayIndex(yyyymmdd: string) {
+  const date = fromTimestamp(yyyymmdd);
+  const day = date.getDay();
+  return (day + 6) % 7;
+}
 
 interface Entry {
   date: string;
@@ -128,6 +140,7 @@ const currentStreak = (entries: Entry[]): number => {
     }
 
     prevDate = entryDate;
+    // FIXME: consider allowing failures as a streak?
     if (entry.isSuccess) {
       streak++;
     } else {
@@ -160,11 +173,11 @@ function reducer(state: UserState, action: {type: string, payload?: UserState}):
     case 'LOAD_STATE':
       return { ...state, ...action.payload };
     case 'PASS':
-      const passedEntries = state.entries;
+      const passedEntries = state.entries.filter((entry) => entry.date !== today());
       passedEntries.push({date: today(), isSuccess: true});
       return { ...state, entries: passedEntries  };
     case 'FAIL':
-      const failedEntries = state.entries;
+      const failedEntries = state.entries.filter((entry) => entry.date !== today());
       failedEntries.push({date: today(), isSuccess: false});
       return { ...state, entries: failedEntries };
     default:
@@ -172,6 +185,65 @@ function reducer(state: UserState, action: {type: string, payload?: UserState}):
   }
 }
 
+
+export const unsqueeze = (entries: Entry[]): Entry[][] => {
+  return entries.reduce((weekly: Entry[][], entry) => {
+
+    const previousWeek = weekly.length ? weekly[weekly.length - 1] : [];
+
+    const previousEntry: Entry | null = previousWeek.length ? previousWeek[previousWeek.length - 1] : null;
+
+    const entryDate = fromTimestamp(entry.date);
+    const entryIndex = dayIndex(entry.date);
+
+    if (previousEntry === null) {
+      weekly.push([entry]);
+      return weekly;
+    }
+
+    const previousDate = fromTimestamp(previousEntry.date);
+    const previousIndex = dayIndex(previousEntry.date);
+    const weeks = weeksBetween(previousDate, entryDate);
+
+    const higherIndex = entryIndex > previousIndex;
+    const isSameWeek = weeks === 0 && higherIndex;
+
+    if (isSameWeek) {
+      previousWeek.push(entry);
+      return weekly;
+    }
+
+    for (let i = 0; i < weeks; i++) {
+      if (i === weeks - 1 && !higherIndex) {
+        continue;
+      }
+      weekly.push([]);
+    }
+    weekly.push([entry]);
+    return weekly;
+  },[]);
+};
+
+interface HistoricalProps {
+  entries: Entry[];
+}
+
+function Historical({ entries }: HistoricalProps): React.JSX.Element {
+  // const currentDay = dayIndex(today())
+  // const gray = "⬜";
+  // const fail = "🔴";
+
+  const weeks: Entry[][] = unsqueeze(entries);
+
+  return (
+    // show current weeks progress
+
+    // show all past progress with latest first
+    // grouped by 13's
+
+    <Text>{JSON.stringify(weeks)}</Text>
+  );
+}
 
 function Daily(): React.JSX.Element {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -240,6 +312,10 @@ function Daily(): React.JSX.Element {
         <Button title="❌ Fail" onPress={handleFail} />
         <Button title="Pass ✔️" onPress={handlePass} />
       </View>
+
+      <View>
+        <Historical entries={state.entries}/>
+      </View>
     </View>
   );
 
@@ -287,13 +363,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '400',
   },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f4f4f4',
-    padding: 20,
-  },
   score: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -315,7 +384,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: "50%",
+    paddingBottom: '50%',
   },
   leftScore: {
     fontSize: 18,
