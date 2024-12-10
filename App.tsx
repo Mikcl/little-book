@@ -236,6 +236,7 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
   const weeks: Entry[][] = unsqueeze(entries);
 
   return (
+    // FIXME
     // show current weeks progress
 
     // show all past progress with latest first
