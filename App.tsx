@@ -1,11 +1,11 @@
 import React, { useReducer, useEffect } from 'react';
 import {
-  Button,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from 'react-native';
@@ -219,25 +219,48 @@ export const unsqueeze = (entries: Entry[]): Entry[][] => {
   },[]);
 };
 
+interface RowProps {
+  virtue: string;
+  entries: Entry[];
+}
+
+const entriesToRow = (entries: Entry[]): string[] => {
+  return Array.from({ length: 7 }, (_, i) => {
+    return i > entries.length - 1 ? ' ' : entries[i].isSuccess ? '🌸' : '🔴';
+  });
+};
+
+function Row({ virtue, entries }: RowProps): React.JSX.Element {
+  const rowIcons = entriesToRow(entries);
+
+  return (
+    <View>
+      <Text>{virtue}: {rowIcons.join(' ')}</Text>
+    </View>
+  );
+
+}
+
 interface HistoricalProps {
   entries: Entry[];
 }
 
 function Historical({ entries }: HistoricalProps): React.JSX.Element {
-  // const currentDay = dayIndex(today())
-  // const gray = "⬜";
-  // const fail = "🔴";
-
   const weeks: Entry[][] = unsqueeze(entries);
+  // the most recent entry is not necessarily from this week.
+  const latestEntryWeekDate = weeks.length ? weeks[weeks.length - 1][0].date : today();
+  const latestVirtue = getVirtue(latestEntryWeekDate);
+  const virtueIndex = virtues.indexOf(latestVirtue);
+
+  const weeksReversed = [...weeks].reverse();
 
   return (
-    // FIXME
-    // show current weeks progress
-
-    // show all past progress with latest first
-    // grouped by 13's
-
-    <Text>{JSON.stringify(weeks)}</Text>
+    <View>
+      {weeksReversed.map(
+        (week, i) => <Row key={i} virtue={virtuesDict[virtues[(virtueIndex - i) % virtues.length]].emoji} entries={week} />
+        )
+      }
+    </View>
   );
 }
 
@@ -285,6 +308,8 @@ function Daily(): React.JSX.Element {
 
   const virtueDetails = virtuesDict[todaysVirtue()];
 
+  const todaysResponse = state.entries.length && state.entries[state.entries.length - 1].date === today() ? state.entries[state.entries.length - 1] : null;
+
   return (
     <View style={styles.dailyContainer}>
       <View style={styles.topSection}>
@@ -305,9 +330,18 @@ function Daily(): React.JSX.Element {
       </View>
 
       <View style={styles.buttonContainer}>
-        {/* FIXME: show whether something has been selected for the day */}
-        <Button title="❌ Fail" onPress={handleFail} />
-        <Button title="Pass ✔️" onPress={handlePass} />
+        <TouchableOpacity
+          onPress={handleFail}
+        >
+          {/* eslint-disable-next-line react-native/no-inline-styles */}
+          <Text style={{ fontWeight: todaysResponse && todaysResponse.isSuccess === false ? 'bold' : 'normal', fontSize: 19 }}>🔴 Fail</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handlePass}
+        >
+          {/* eslint-disable-next-line react-native/no-inline-styles */}
+          <Text style={{ fontWeight: todaysResponse && todaysResponse.isSuccess ? 'bold' : 'normal', fontSize: 20 }}>Pass 🌸</Text>
+        </TouchableOpacity>
       </View>
 
       <View>
