@@ -1,5 +1,6 @@
 import React, { useReducer, useEffect } from 'react';
 import {
+  Alert,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -242,6 +243,41 @@ function Row({ virtue, entries }: RowProps): React.JSX.Element {
 
 }
 
+const InfoIcon = (): React.JSX.Element => {
+  const sentence = 'Benjamin Franklin did not attempt to work on all the virtues simultaneously but instead focused on one virtue per week';
+
+  const experience = 'noting in his autobiography that, although he never achieved perfection in these virtues, the attempt itself was highly beneficial to his success and happiness.';
+
+  const descriptions = Object.values(virtuesDict).map((v) => `${v.emoji} ${v.name}: ${v.description}`);
+
+  const lastWords = '"I hope, therefore, that some of my descendants may follow the example and reap the benefit"';
+
+  const messages = [
+    sentence,
+    experience,
+    lastWords,
+    '----------',
+    'each day you can pass/fail the virtue, each monday the next virtue begins!',
+    '----------',
+    descriptions.join('\n\n'),
+  ];
+
+  const handlePress = () => {
+    Alert.alert(
+      'hi - quick guide',
+      messages.join('\n\n'),
+      [{ text: 'got it!' }]
+    );
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      <Text style={styles.infoText}>ℹ️</Text>
+    </TouchableOpacity>
+  );
+};
+
+
 interface HistoricalProps {
   entries: Entry[];
 }
@@ -314,18 +350,16 @@ function Daily(): React.JSX.Element {
   return (
     <View style={styles.dailyContainer}>
       <View style={styles.topSection}>
-        <Text style={styles.leftScore}>🔥 {currentStreak(state.entries)}</Text>
-        <Text style={styles.rightScore}>
-          🌸 {scoring(state.entries)} 🔴 {failures(state.entries)}
-        </Text>
+        <Text style={styles.leftScore}>🔥 {currentStreak(state.entries)} 🌸 {scoring(state.entries)} 🔴 {failures(state.entries)}</Text>
+        <View>
+          <InfoIcon />
+        </View>
       </View>
 
       <View style={styles.middleSection}>
         <Text style={styles.virtue}>{virtueDetails.name}</Text>
         <Text style={styles.details}>{virtueDetails.description}</Text>
         <Text style={styles.virtue}>
-          {virtueDetails.emoji}
-          {virtueDetails.emoji}
           {virtueDetails.emoji}
         </Text>
       </View>
@@ -345,7 +379,8 @@ function Daily(): React.JSX.Element {
         </TouchableOpacity>
       </View>
 
-      <View>
+      {/* eslint-disable-next-line react-native/no-inline-styles */}
+      <View style={{marginTop: '5%'}}>
         <Historical entries={state.entries}/>
       </View>
     </View>
@@ -423,7 +458,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FF4500', // Fire color
   },
-  rightScore: {
+  rightHelp: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000', // Black for scores
@@ -444,6 +479,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around', // Evenly space the buttons
     marginVertical: 20,
+  },
+  infoButton: {
+    fontSize: 18,
+  },
+  infoText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
