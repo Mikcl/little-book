@@ -22,9 +22,8 @@ interface Virtue {
   description: string;
 }
 
-// FIXME: make better descriptions
 const virtuesDict: Record<string, Virtue> = {
-  'Temperance': { name: 'Temperance', emoji: '🧘‍♂️', description: 'Practice moderation in all things and avoid excess.' },
+  'Temperance': { name: 'Temperance', emoji: '🧘‍♂️', description: 'Eat not to dullness; drink not to elevation.' },
   'Silence': { name: 'Silence', emoji: '🕊️', description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.' },
   'Order': { name: 'Order', emoji: '🗂️', description: 'Let all things have their place; let each part of your business have its time.' },
   'Resolution': { name: 'Resolution', emoji: '💪', description: 'Resolve to perform what you ought; perform without fail what you resolve.' },
@@ -35,8 +34,10 @@ const virtuesDict: Record<string, Virtue> = {
   'Moderation': { name: 'Moderation', emoji: '🛑', description: 'Avoid extremes; forbear resenting injuries as much as you think they deserve.' },
   'Cleanliness': { name: 'Cleanliness', emoji: '✨', description: 'Keep your body, clothes, and habitation clean.' },
   'Tranquility': { name: 'Tranquility', emoji: '🌳', description: 'Be not disturbed at trifles, or at accidents common or unavoidable.' },
-  'Chastity': { name: 'Chastity', emoji: '❤️', description: 'Rarely use venery but for health or offspring; never to dullness, weakness, or the injury of your own or another’s peace or reputation.' },
-  'Humility': { name: 'Humility', emoji: '😊', description: 'Imitate Jesus and Socrates.' },
+  // This is actually 'Chastity' but reworded to purity to avoid sexual connotations.
+  'Purity': { name: 'Purity', emoji: '❤️', description: 'Use actions thoughtfully, aligning them with their purpose; never to dullness, weakness, or the injury of your own or another’s peace or reputation.' },
+  // Taken Eliezer Yudkowsky description as "Imitate Jesus and Socrates" people may not know.
+  'Humility': { name: 'Humility', emoji: '😊', description: 'Take specific actions in anticipation of your own errors' },
 };
 
 const virtues = Object.keys(virtuesDict);
