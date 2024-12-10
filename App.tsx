@@ -380,7 +380,7 @@ function Daily(): React.JSX.Element {
       </View>
 
       {/* eslint-disable-next-line react-native/no-inline-styles */}
-      <View style={{marginTop: '5%'}}>
+      <View style={{marginTop: '20%'}}>
         <Historical entries={state.entries}/>
       </View>
     </View>
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: '50%',
+    paddingBottom: '20%',
   },
   leftScore: {
     fontSize: 18,
