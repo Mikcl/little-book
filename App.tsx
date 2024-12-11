@@ -71,23 +71,21 @@ function weeksBetween(date1: Date, date2: Date): number {
 }
 
 const getWeekOfYear = (date: Date) => {
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0); // Reset time to midnight
+  const year = date.getUTCFullYear();
 
-  // Set to Thursday in the current week (ISO week starts on Monday)
-  targetDate.setDate(targetDate.getDate() + 3 - ((targetDate.getDay() + 6) % 7));
+  // Get the day of the week for January 1st of the year
+  const jan1Day = new Date(Date.UTC(year, 0, 1)).getUTCDay();
 
-  // January 4th is always in week 1 (ISO rule)
-  const firstWeek: Date = new Date(targetDate.getFullYear(), 0, 4);
-  const diff = targetDate.getTime() - firstWeek.getTime();
+  // Calculate the total number of days passed in the year so far
+  const dayOfYear = Math.floor((date.getTime() - new Date(Date.UTC(year, 0, 1)).getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-  const daysDiff = Math.round(diff / (24 * 60 * 60 * 1000));
+  // Adjust jan1Day to treat Sunday as the start of the week
+  const offset = (7 - jan1Day) % 7; // Days until the first Sunday
 
-  // zero index
-  // some years have 53 weeks, lets just duplicate the last week in that case
-  const week = Math.min(Math.floor(daysDiff / 7), 51);
-  const woy = week < 0 ? 0 : week;
-  return woy;
+  // Calculate the number of Sundays
+  const sundaysPassed = Math.floor((dayOfYear - offset + 6) / 7);
+
+  return sundaysPassed;
 };
 
 function dayIndex(yyyymmdd: string) {
@@ -321,9 +319,15 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
           }
           return (
             <View key={i}>
-            <Row virtue={virtuesDict[virtues[j]].emoji} entries={week} note="" />
-            {/* eslint-disable-next-line react-native/no-inline-styles */}
-            {j === 0 && <View style={{marginVertical: 5}} />}
+              <Row
+                virtue={virtuesDict[virtues[j]].emoji}
+                entries={week}
+                note={
+                  j === 0 ? 'hi' : ''
+                }
+              />
+              {/* eslint-disable-next-line react-native/no-inline-styles */}
+              {j === 0 && <View style={{marginVertical: 5}} />}
             </View>
           );
         }
