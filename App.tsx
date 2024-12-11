@@ -70,17 +70,18 @@ function weeksBetween(date1: Date, date2: Date): number {
   return Math.floor(diffInMs / msInWeek);
 }
 
-const getWeekOfYear = (date: Date) => {
+const getWeekOfYear = (date: Date, addDays: number = 0) => {
   const year = date.getUTCFullYear();
 
   // Get the day of the week for January 1st of the year
   const jan1Day = new Date(Date.UTC(year, 0, 1)).getUTCDay();
 
   // Calculate the total number of days passed in the year so far
-  const dayOfYear = Math.floor((date.getTime() - new Date(Date.UTC(year, 0, 1)).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const dayOfYear = Math.floor((date.getTime() - new Date(Date.UTC(year, 0, 1)).getTime()) / (1000 * 60 * 60 * 24)) + addDays;
 
   // Adjust jan1Day to treat Sunday as the start of the week
   const offset = (7 - jan1Day) % 7; // Days until the first Sunday
+
 
   // Calculate the number of Sundays
   const sundaysPassed = Math.floor((dayOfYear - offset + 6) / 7);
@@ -306,7 +307,7 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
   const latestEntryWeekDate = weeks.length ? weeks[weeks.length - 1][0].date : today();
   const relDate = fromTimestamp(latestEntryWeekDate);
   const lastYear = relDate.getFullYear();
-  const lastWoy = getWeekOfYear(relDate);
+  const lastWoy = getWeekOfYear(relDate, 1);
   const weeksGone = (lastYear * 52) + lastWoy;
   const latestVirtue = getVirtue(latestEntryWeekDate);
   const latestVirtueIndex = virtues.indexOf(latestVirtue);
