@@ -43,8 +43,12 @@ const virtuesDict: Record<string, Virtue> = {
 
 const virtues = Object.keys(virtuesDict);
 
+// FIXME: remove globalDay referencing, only for developer mode.
+var globalDay = new Date();
+
 const today = (): string => {
-  const now = new Date();
+  // const now = new Date();
+  const now = globalDay;
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
@@ -67,7 +71,6 @@ function weeksBetween(date1: Date, date2: Date): number {
 }
 
 const getWeekOfYear = (date: Date) => {
-  // FIXME: consider making the week start on sunday instead
   const targetDate = new Date(date);
   targetDate.setHours(0, 0, 0, 0); // Reset time to midnight
 
@@ -82,14 +85,16 @@ const getWeekOfYear = (date: Date) => {
 
   // zero index
   // some years have 53 weeks, lets just duplicate the last week in that case
-  return Math.min(Math.floor(daysDiff / 7), 51);
+  const week = Math.min(Math.floor(daysDiff / 7), 51);
+  const woy = week < 0 ? 0 : week;
+  return woy;
 };
 
 function dayIndex(yyyymmdd: string) {
-  // FIXME: consider making the week start on sunday instead
   const date = fromTimestamp(yyyymmdd);
-  const day = date.getDay();
+  const day = date.getDay(); // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
   return (day + 6) % 7;
+  // return (day === 0 ? 6 : day - 1); // Map Sunday to 6, Monday to 0, etc.
 }
 
 interface Entry {
@@ -138,7 +143,8 @@ const currentStreak = (entries: Entry[]): number => {
   for (const entry of filteredEntries) {
     const entryDate = fromTimestamp(entry.date);
 
-    if (prevDate && (prevDate.getTime() - entryDate.getTime()) !== 24 * 60 * 60 * 1000) {
+    // weird offset to account for strange time differences, it is still "not more than a day"
+    if (prevDate && (prevDate.getTime() - entryDate.getTime()) > (24 + 5) * 60 * 60 * 1000) {
       break; // not consecutive
     }
     prevDate = entryDate;
@@ -172,10 +178,12 @@ function reducer(state: UserState, action: {type: string, payload?: UserState}):
     case 'PASS':
       const passedEntries = state.entries.filter((entry) => entry.date !== today());
       passedEntries.push({date: today(), isSuccess: true});
+      globalDay.setDate(globalDay.getDate() + 1);
       return { ...state, entries: passedEntries  };
     case 'FAIL':
       const failedEntries = state.entries.filter((entry) => entry.date !== today());
       failedEntries.push({date: today(), isSuccess: false});
+      globalDay.setDate(globalDay.getDate() + 1);
       return { ...state, entries: failedEntries };
     default:
       return state;
@@ -227,9 +235,20 @@ interface RowProps {
 }
 
 const entriesToRow = (entries: Entry[]): string[] => {
-  return Array.from({ length: 7 }, (_, i) => {
-    return i > entries.length - 1 ? ' ' : entries[i].isSuccess ? '🌸' : '🔴';
-  });
+  return entries.reduce((result, entry: Entry, i: number) => {
+    // pad days of the week where there was no entry
+    const previousEntry = i !== 0 ? entries[i - 1] : null;
+
+    const blankDays = previousEntry === null ? dayIndex(entry.date) : dayIndex(entry.date) - dayIndex(previousEntry.date) - 1;
+
+    for (let j = 0; j < blankDays; j++) {
+      result.push('⬜');
+    }
+    result.push(entry.isSuccess ? '🌸' : '🔴');
+    return result;
+
+  }, [] as string[]);
+
 };
 
 function Row({ virtue, entries }: RowProps): React.JSX.Element {
@@ -294,7 +313,13 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
   return (
     <View>
       {weeksReversed.map(
-        (week, i) => <Row key={i} virtue={virtuesDict[virtues[(virtueIndex - i) % virtues.length]].emoji} entries={week} />
+        (week, i) => {
+          let j = (virtueIndex - i) % virtues.length;
+          if (j < 0) {
+            j = virtues.length + j;
+          }
+          return <Row key={i} virtue={virtuesDict[virtues[j]].emoji} entries={week} />;
+        }
         )
       }
     </View>
@@ -313,7 +338,7 @@ function Daily(): React.JSX.Element {
         dispatch({
           type: 'LOAD_STATE',
           payload: {
-            entries,
+            entries: [],
           },
         });
       } catch (error) {
