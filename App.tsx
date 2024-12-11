@@ -304,8 +304,12 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
   const weeks: Entry[][] = unsqueeze(entries);
   // the most recent entry is not necessarily from this week.
   const latestEntryWeekDate = weeks.length ? weeks[weeks.length - 1][0].date : today();
+  const relDate = fromTimestamp(latestEntryWeekDate);
+  const lastYear = relDate.getFullYear();
+  const lastWoy = getWeekOfYear(relDate);
+  const weeksGone = (lastYear * 52) + lastWoy;
   const latestVirtue = getVirtue(latestEntryWeekDate);
-  const virtueIndex = virtues.indexOf(latestVirtue);
+  const latestVirtueIndex = virtues.indexOf(latestVirtue);
 
   const weeksReversed = [...weeks].reverse();
 
@@ -313,21 +317,27 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
     <View>
       {weeksReversed.map(
         (week, i) => {
-          let j = (virtueIndex - i) % virtues.length;
-          if (j < 0) {
-            j = virtues.length + j;
+          let virtueIndex = (latestVirtueIndex - i) % virtues.length;
+          if (virtueIndex < 0) {
+            virtueIndex = virtues.length + virtueIndex;
           }
+
+          const weekIndex = weeksGone - i;
+          const woy = weekIndex % 52;
+          const year = Math.floor(weekIndex / 52);
+          const quarter = woy < 13 ? 1 : woy < 26 ? 2 : woy < 39 ? 3 : 4;
+
           return (
             <View key={i}>
               <Row
-                virtue={virtuesDict[virtues[j]].emoji}
+                virtue={virtuesDict[virtues[virtueIndex]].emoji}
                 entries={week}
                 note={
-                  j === 0 ? 'hi' : ''
+                  virtueIndex === 0 ? `${year} Q${quarter}` : ''
                 }
               />
               {/* eslint-disable-next-line react-native/no-inline-styles */}
-              {j === 0 && <View style={{marginVertical: 5}} />}
+              {virtueIndex === 0 && <View style={{marginVertical: 5}} />}
             </View>
           );
         }
