@@ -1,7 +1,7 @@
 
 The Little Book of Benjamin Franklin - practice virtues as Ben did 🔴📕
 
-Benjamin Franklin did not attempt to work on all the virtues simultaneously but instead focused on one virtue per week.Noting in his autobiography that, although he never achieved perfection in these virtues, the attempt itself was highly beneficial to his success and happiness.
+Benjamin Franklin did not attempt to work on all the virtues simultaneously but instead focused on one virtue per week. Noting in his autobiography that, although he never achieved perfection in these virtues, the attempt itself was highly beneficial to his success and happiness.
 
 Temperance 🧘‍♂️
 Silence 🕊️
