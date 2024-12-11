@@ -283,7 +283,7 @@ const InfoIcon = (): React.JSX.Element => {
 
   const handlePress = () => {
     Alert.alert(
-      'hi - quick guide',
+      'guide',
       messages.join('\n\n'),
       [{ text: 'got it!' }]
     );
@@ -489,16 +489,16 @@ const styles = StyleSheet.create({
     color: '#000', // Black for scores
   },
   middleSection: {
-    flex: 1,
     justifyContent: 'center', // Center virtue details
     alignItems: 'center',
     textAlign: 'center',
+    minHeight: 60,
   },
   details: {
     fontSize: 16,
     color: '#555', // Grey for description
     textAlign: 'center',
-    marginVertical: 10,
+    minHeight: 60,
   },
   buttonContainer: {
     flexDirection: 'row',
