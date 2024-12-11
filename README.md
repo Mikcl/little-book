@@ -17,6 +17,8 @@ Tranquility 🌳
 Purity ❤️
 Humility 😊
 
+"I hope, therefore, that some of my descendants may follow the example and reap the benefit"
+
 ----
 
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
