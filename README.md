@@ -1,3 +1,24 @@
+
+The Little Book of Benjamin Franklin - practice virtues as Ben did 🔴📕
+
+Benjamin Franklin did not attempt to work on all the virtues simultaneously but instead focused on one virtue per week.Noting in his autobiography that, although he never achieved perfection in these virtues, the attempt itself was highly beneficial to his success and happiness.
+
+Temperance 🧘‍♂️
+Silence 🕊️
+Order 🗂️
+Resolution 💪
+Frugality 🌱
+Industry 🛠️
+Sincerity 🤝
+Justice ⚖️
+Moderation 🛑
+Cleanliness ✨
+Tranquility 🌳
+Purity ❤️
+Humility 😊
+
+----
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
