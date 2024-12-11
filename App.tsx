@@ -70,18 +70,31 @@ function weeksBetween(date1: Date, date2: Date): number {
   return Math.floor(diffInMs / msInWeek);
 }
 
-const getWeekOfYear = (date: Date, addDays: number = 0) => {
+function getWeekNumber(d: Date): number {
+  // Copy date so don't modify original
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  // Set to nearest Thursday: current date + 4 - current day number
+  // Make Sunday's day number 7
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  // Get first day of year
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  // Calculate full weeks to nearest Thursday
+  var weekNo = Math.ceil(( ( (d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  // Handle years with 53 weeks with a duplicate?
+  return Math.min(weekNo - 1, 51);
+}
+
+const sundaysGone = (date: Date): number => {
   const year = date.getUTCFullYear();
 
   // Get the day of the week for January 1st of the year
   const jan1Day = new Date(Date.UTC(year, 0, 1)).getUTCDay();
 
   // Calculate the total number of days passed in the year so far
-  const dayOfYear = Math.floor((date.getTime() - new Date(Date.UTC(year, 0, 1)).getTime()) / (1000 * 60 * 60 * 24)) + addDays;
+  const dayOfYear = Math.floor((date.getTime() - new Date(Date.UTC(year, 0, 1)).getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
   // Adjust jan1Day to treat Sunday as the start of the week
   const offset = (7 - jan1Day) % 7; // Days until the first Sunday
-
 
   // Calculate the number of Sundays
   const sundaysPassed = Math.floor((dayOfYear - offset + 6) / 7);
@@ -159,7 +172,7 @@ interface UserState {
 }
 
 const getVirtue = (yyyymmdd: string): string => {
-  return virtues[getWeekOfYear(fromTimestamp(yyyymmdd)) % virtues.length];
+  return virtues[getWeekNumber(fromTimestamp(yyyymmdd)) % virtues.length];
 };
 
 const todaysVirtue = (): string => {
@@ -307,7 +320,7 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
   const latestEntryWeekDate = weeks.length ? weeks[weeks.length - 1][0].date : today();
   const relDate = fromTimestamp(latestEntryWeekDate);
   const lastYear = relDate.getFullYear();
-  const lastWoy = getWeekOfYear(relDate, 1);
+  const lastWoy = sundaysGone(relDate);
   const weeksGone = (lastYear * 52) + lastWoy;
   const latestVirtue = getVirtue(latestEntryWeekDate);
   const latestVirtueIndex = virtues.indexOf(latestVirtue);
