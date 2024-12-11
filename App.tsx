@@ -232,6 +232,7 @@ export const unsqueeze = (entries: Entry[]): Entry[][] => {
 interface RowProps {
   virtue: string;
   entries: Entry[];
+  note: string
 }
 
 const entriesToRow = (entries: Entry[]): string[] => {
@@ -251,12 +252,12 @@ const entriesToRow = (entries: Entry[]): string[] => {
 
 };
 
-function Row({ virtue, entries }: RowProps): React.JSX.Element {
+function Row({ virtue, entries, note }: RowProps): React.JSX.Element {
   const rowIcons = entriesToRow(entries);
 
   return (
     <View>
-      <Text>{virtue}: {rowIcons.join(' ')}</Text>
+      <Text style={styles.history}>{virtue}: {rowIcons.join(' ')}{note !== '' && rowIcons.length === 7 ? '  ' + note : ''}</Text>
     </View>
   );
 
@@ -318,7 +319,13 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
           if (j < 0) {
             j = virtues.length + j;
           }
-          return <Row key={i} virtue={virtuesDict[virtues[j]].emoji} entries={week} />;
+          return (
+            <View key={i}>
+            <Row virtue={virtuesDict[virtues[j]].emoji} entries={week} note="" />
+            {/* eslint-disable-next-line react-native/no-inline-styles */}
+            {j === 0 && <View style={{marginVertical: 5}} />}
+            </View>
+          );
         }
         )
       }
@@ -460,6 +467,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  history: {
+    fontSize: 20,
+    marginBottom: 2,
+    textAlign: 'left',
   },
   virtue: {
     fontSize: 22,
