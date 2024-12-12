@@ -373,7 +373,7 @@ function Daily(): React.JSX.Element {
         dispatch({
           type: 'LOAD_STATE',
           payload: {
-            entries: [],
+            entries,
           },
         });
       } catch (error) {
