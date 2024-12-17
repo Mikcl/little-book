@@ -23,99 +23,99 @@ it('renders correctly', async () => {
 describe('unsqueeze', () => {
     it('should group entries by weeks correctly', () => {
         const entries = [
-            { date: '20240101', isSuccess: true }, // Monday
-            { date: '20240102', isSuccess: false }, // Tuesday
-            { date: '20240108', isSuccess: true }, // Next Monday
+            { date: '20240101', isSuccess: true, notes: "" }, // Monday
+            { date: '20240102', isSuccess: false, notes: "" }, // Tuesday
+            { date: '20240108', isSuccess: true, notes: "" }, // Next Monday
         ];
         const result = unsqueeze(entries);
 
         expect(result).toEqual([
             [
-                { date: '20240101', isSuccess: true },
-                { date: '20240102', isSuccess: false },
+                { date: '20240101', isSuccess: true, notes: "" },
+                { date: '20240102', isSuccess: false, notes: "" },
             ],
             [
-                { date: '20240108', isSuccess: true },
+                { date: '20240108', isSuccess: true, notes: "" },
             ],
         ]);
     });
 
     it('should group entries by weeks correctly, with negative overlap', () => {
         const entries = [
-            { date: '20240102', isSuccess: false }, // Tuesday
-            { date: '20240108', isSuccess: true }, // Next Monday
+            { date: '20240102', isSuccess: false, notes: "" }, // Tuesday
+            { date: '20240108', isSuccess: true, notes: "" }, // Next Monday
         ];
         const result = unsqueeze(entries);
 
         expect(result).toEqual([
             [
-                { date: '20240102', isSuccess: false },
+                { date: '20240102', isSuccess: false, notes: "" },
             ],
             [
-                { date: '20240108', isSuccess: true },
+                { date: '20240108', isSuccess: true, notes: "" },
             ],
         ]);
     });
 
     it('should group entries by weeks correctly, with positive overlap', () => {
         const entries = [
-            { date: '20240102', isSuccess: false }, // Tuesday
-            { date: '20240109', isSuccess: true }, // Next Tuesday
+            { date: '20240102', isSuccess: false, notes: "" }, // Tuesday
+            { date: '20240109', isSuccess: true, notes: "" }, // Next Tuesday
         ];
         const result = unsqueeze(entries);
 
         expect(result).toEqual([
             [
-                { date: '20240102', isSuccess: false },
+                { date: '20240102', isSuccess: false, notes: "" },
             ],
             [
-                { date: '20240109', isSuccess: true },
+                { date: '20240109', isSuccess: true, notes: "" },
             ],
         ]);
     });
 
     it('should create empty weeks if there are gaps between entries', () => {
         const entries = [
-            { date: '20240101', isSuccess: true }, // Monday
-            { date: '20240115', isSuccess: true }, // Two weeks later (Monday)
+            { date: '20240101', isSuccess: true, notes: "" }, // Monday
+            { date: '20240115', isSuccess: true, notes: "" }, // Two weeks later (Monday)
         ];
         const result = unsqueeze(entries);
 
         expect(result).toEqual([
             [
-                { date: '20240101', isSuccess: true },
+                { date: '20240101', isSuccess: true, notes: "" },
             ],
             [],
             [
-                { date: '20240115', isSuccess: true },
+                { date: '20240115', isSuccess: true, notes: "" },
             ],
         ]);
     });
 
     it('should handle a single entry', () => {
-        const entries = [{ date: '20240101', isSuccess: true }];
+        const entries = [{ date: '20240101', isSuccess: true, notes: "" }];
         const result = unsqueeze(entries);
 
         expect(result).toEqual([
             [
-                { date: '20240101', isSuccess: true },
+                { date: '20240101', isSuccess: true, notes: "" },
             ],
         ]);
     });
 
     it('should handle entries spanning across years', () => {
         const entries = [
-            { date: '20231231', isSuccess: true }, // Sunday
-            { date: '20240101', isSuccess: false }, // Monday
+            { date: '20231231', isSuccess: true, notes: "" }, // Sunday
+            { date: '20240101', isSuccess: false, notes: "" }, // Monday
         ];
         const result = unsqueeze(entries);
 
         expect(result).toEqual([
             [
-                { date: '20231231', isSuccess: true },
+                { date: '20231231', isSuccess: true, notes: "" },
             ],
             [
-                { date: '20240101', isSuccess: false },
+                { date: '20240101', isSuccess: false, notes: "" },
             ],
         ]);
     });

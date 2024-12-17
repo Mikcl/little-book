@@ -6,6 +6,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -112,6 +113,7 @@ function dayIndex(yyyymmdd: string) {
 interface Entry {
   date: string;
   isSuccess: boolean;
+  notes: string;
 }
 
 
@@ -183,20 +185,36 @@ const initialState: UserState = {
   entries: [],
 };
 
-function reducer(state: UserState, action: {type: string, payload?: UserState}): UserState {
+function reducer(state: UserState, action: {type: string, payload?: UserState, text?: string}): UserState {
   switch (action.type) {
     case 'LOAD_STATE':
       return { ...state, ...action.payload };
     case 'PASS':
       const passedEntries = state.entries.filter((entry) => entry.date !== today());
-      passedEntries.push({date: today(), isSuccess: true});
+      const finalEntry = state.entries.length && state.entries[state.entries.length - 1].date === today() ? state.entries[state.entries.length - 1] : {date: '', isSuccess: false, notes: ''} as Entry;
+      passedEntries.push({date: today(), isSuccess: true, notes: finalEntry.notes});
       // globalDay.setDate(globalDay.getDate() + 1);
       return { ...state, entries: passedEntries  };
     case 'FAIL':
       const failedEntries = state.entries.filter((entry) => entry.date !== today());
-      failedEntries.push({date: today(), isSuccess: false});
+
+      const lastEntry = state.entries.length && state.entries[state.entries.length - 1].date === today() ? state.entries[state.entries.length - 1] : {date: '', isSuccess: false, notes: ''} as Entry;
+      failedEntries.push({date: today(), isSuccess: false, notes: lastEntry.notes});
       // globalDay.setDate(globalDay.getDate() + 1);
       return { ...state, entries: failedEntries };
+    case 'TEXT':
+      const updatedEntries = state.entries.map((entry) => {
+        if (entry.date === today()) {
+          return {
+            ...entry,
+            notes: action.text || '',
+          };
+        } else {
+          return entry;
+        }
+      });
+      // globalDay.setDate(globalDay.getDate() + 1);
+      return { ...state, entries: updatedEntries };
     default:
       return state;
   }
@@ -247,7 +265,7 @@ interface RowProps {
   note: string
 }
 
-const entriesToRow = (entries: Entry[]): string[] => {
+const entriesToRow = (entries: Entry[]): (Entry | null)[] => {
   return entries.reduce((result, entry: Entry, i: number) => {
     // pad days of the week where there was no entry
     const previousEntry = i !== 0 ? entries[i - 1] : null;
@@ -255,24 +273,62 @@ const entriesToRow = (entries: Entry[]): string[] => {
     const blankDays = previousEntry === null ? dayIndex(entry.date) : dayIndex(entry.date) - dayIndex(previousEntry.date) - 1;
 
     for (let j = 0; j < blankDays; j++) {
-      result.push('⬜');
+      result.push(null);
     }
-    result.push(entry.isSuccess ? '🌸' : '🔴');
+    // entry.isSuccess ? '🌸' : '🔴'
+    result.push(entry);
     return result;
 
-  }, [] as string[]);
+  }, [] as (Entry | null)[]);
 
 };
 
+function HistoricalEntry({ historicalEntry }: {historicalEntry: null | Entry}): React.JSX.Element {
+  const handleIconClick = (entry: Entry | null) => {
+    if (entry === null) {
+      return;
+    }
+
+    const statusEmoji = entry.isSuccess ? '🌸' : '🔴';
+    const time = fromTimestamp(entry.date);
+    const date = `${time.getFullYear()}-${time.getMonth()}-${time.getDate()}`;
+
+    const virtue = virtuesDict[getVirtue(entry.date)];
+
+    Alert.alert(`${date} ${statusEmoji}`, `${virtue.name} ${virtue.emoji}\n\n${entry.notes}`);
+  };
+
+
+  return (<TouchableOpacity
+    onPress={() => handleIconClick(historicalEntry)}
+    // eslint-disable-next-line react-native/no-inline-styles
+    style={{margin: 0}}
+  >
+    <Text
+      // eslint-disable-next-line react-native/no-inline-styles
+      style={{fontSize: 20 }}
+    >
+      {' '}{historicalEntry === null ? '⬜' : historicalEntry.isSuccess ? '🌸' : '🔴'}
+    </Text>
+  </TouchableOpacity>);
+}
+
+
+
 function Row({ virtue, entries, note }: RowProps): React.JSX.Element {
-  const rowIcons = entriesToRow(entries);
+  const rows = entriesToRow(entries);
 
   return (
-    <View>
-      <Text style={styles.history}>{virtue}: {rowIcons.join(' ')}{note !== '' && rowIcons.length === 7 ? '  ' + note : ''}</Text>
+    // eslint-disable-next-line react-native/no-inline-styles
+    <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: 2, justifyContent: 'flex-start'}}>
+      {/* eslint-disable-next-line react-native/no-inline-styles */}
+      <Text style={{textAlign: 'left', fontSize: 20}}>{virtue}: </Text>
+      {/* eslint-disable-next-line react-native/no-inline-styles */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
+        {rows.map((entry, i) => <HistoricalEntry key={i} historicalEntry={entry} />)}{note !== '' && rows.length === 7 ? '  ' + note : ''}
+      </View>
     </View>
   );
-
 }
 
 const InfoIcon = (): React.JSX.Element => {
@@ -403,6 +459,11 @@ function Daily(): React.JSX.Element {
     dispatch({ type: 'FAIL' });
   };
 
+  const handleNotes = (notes: string) => {
+    const text = notes.slice(0, 1000);
+    dispatch({ type: 'TEXT', text: text });
+  };
+
   const virtueDetails = virtuesDict[todaysVirtue()];
 
   const todaysResponse = state.entries.length && state.entries[state.entries.length - 1].date === today() ? state.entries[state.entries.length - 1] : null;
@@ -438,6 +499,15 @@ function Daily(): React.JSX.Element {
           <Text style={{ fontWeight: todaysResponse && todaysResponse.isSuccess ? 'bold' : 'normal', fontSize: 20 }}>Pass 🌸</Text>
         </TouchableOpacity>
       </View>
+      <View>
+      <TextInput
+        style={styles.textArea}
+        placeholder="your reflection for today..."
+        multiline
+        value={todaysResponse ? todaysResponse.notes : '' }
+        onChangeText={handleNotes}
+      />
+    </View>
 
       {/* eslint-disable-next-line react-native/no-inline-styles */}
       <View style={{marginTop: '20%'}}>
@@ -498,7 +568,6 @@ const styles = StyleSheet.create({
   },
   history: {
     fontSize: 20,
-    marginBottom: 2,
     textAlign: 'left',
   },
   virtue: {
@@ -544,6 +613,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around', // Evenly space the buttons
     marginVertical: 20,
+  },
+  textArea: {
+    height: 120,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    textAlignVertical: 'top',
   },
   infoButton: {
     fontSize: 18,
