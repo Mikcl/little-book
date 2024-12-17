@@ -295,7 +295,9 @@ function HistoricalEntry({ historicalEntry }: {historicalEntry: null | Entry}): 
 
     const virtue = virtuesDict[getVirtue(entry.date)];
 
-    Alert.alert(`${date} ${statusEmoji}`, `${virtue.name} ${virtue.emoji}\n\n${entry.notes}`);
+    const notes = entry.notes.trim().length ? entry.notes : "[no reflection notes made]"
+
+    Alert.alert(`${date} ${statusEmoji}`, `${virtue.name} ${virtue.emoji}\n\n${notes}`);
   };
 
 
