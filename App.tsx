@@ -45,11 +45,11 @@ const virtuesDict: Record<string, Virtue> = {
 const virtues = Object.keys(virtuesDict);
 
 // FIXME: remove globalDay referencing, only for developer mode.
-// var globalDay = new Date();
+var globalDay = new Date();
 
 const today = (): string => {
-  const now = new Date();
-  // const now = globalDay;
+  // const now = new Date();
+  const now = globalDay;
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
@@ -193,14 +193,14 @@ function reducer(state: UserState, action: {type: string, payload?: UserState, t
       const passedEntries = state.entries.filter((entry) => entry.date !== today());
       const finalEntry = state.entries.length && state.entries[state.entries.length - 1].date === today() ? state.entries[state.entries.length - 1] : {date: '', isSuccess: false, notes: ''} as Entry;
       passedEntries.push({date: today(), isSuccess: true, notes: finalEntry.notes});
-      // globalDay.setDate(globalDay.getDate() + 1);
+      globalDay.setDate(globalDay.getDate() + 1);
       return { ...state, entries: passedEntries  };
     case 'FAIL':
       const failedEntries = state.entries.filter((entry) => entry.date !== today());
 
       const lastEntry = state.entries.length && state.entries[state.entries.length - 1].date === today() ? state.entries[state.entries.length - 1] : {date: '', isSuccess: false, notes: ''} as Entry;
       failedEntries.push({date: today(), isSuccess: false, notes: lastEntry.notes});
-      // globalDay.setDate(globalDay.getDate() + 1);
+      globalDay.setDate(globalDay.getDate() + 1);
       return { ...state, entries: failedEntries };
     case 'TEXT':
       const updatedEntries = state.entries.map((entry) => {
@@ -213,7 +213,11 @@ function reducer(state: UserState, action: {type: string, payload?: UserState, t
           return entry;
         }
       });
-      // globalDay.setDate(globalDay.getDate() + 1);
+      if (!(updatedEntries.length) || updatedEntries[updatedEntries.length - 1].date !== today()) {
+        // auto set to pass
+        updatedEntries.push({date: today(), isSuccess: true, notes: action.text || ''});
+      }
+
       return { ...state, entries: updatedEntries };
     default:
       return state;
@@ -275,7 +279,6 @@ const entriesToRow = (entries: Entry[]): (Entry | null)[] => {
     for (let j = 0; j < blankDays; j++) {
       result.push(null);
     }
-    // entry.isSuccess ? '🌸' : '🔴'
     result.push(entry);
     return result;
 
@@ -295,7 +298,7 @@ function HistoricalEntry({ historicalEntry }: {historicalEntry: null | Entry}): 
 
     const virtue = virtuesDict[getVirtue(entry.date)];
 
-    const notes = entry.notes.trim().length ? entry.notes : "[no reflection notes made]"
+    const notes = entry.notes.trim().length ? entry.notes : '[no reflection notes made]';
 
     Alert.alert(`${date} ${statusEmoji}`, `${virtue.name} ${virtue.emoji}\n\n${notes}`);
   };
@@ -431,7 +434,7 @@ function Daily(): React.JSX.Element {
         dispatch({
           type: 'LOAD_STATE',
           payload: {
-            entries,
+            entries: [],
           },
         });
       } catch (error) {
