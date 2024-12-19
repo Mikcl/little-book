@@ -330,7 +330,7 @@ function Row({ virtue, entries, note }: RowProps): React.JSX.Element {
       <Text style={{textAlign: 'left', fontSize: 20}}>{virtue}: </Text>
       {/* eslint-disable-next-line react-native/no-inline-styles */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
-        {rows.map((entry, i) => <HistoricalEntry key={i} historicalEntry={entry} />)}{note !== '' && rows.length === 7 ? '  ' + note : ''}
+        {rows.map((entry, i) => <HistoricalEntry key={i} historicalEntry={entry} />)}{note !== '' && rows.length === 7 ? <Text>  {note}</Text> : ''}
       </View>
     </View>
   );
