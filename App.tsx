@@ -407,7 +407,7 @@ function HistoricalEntry({ historicalEntry }: {historicalEntry: null | Entry}): 
 
     const statusEmoji = entry.isSuccess ? '🌸' : '🔴';
     const time = fromTimestamp(entry.date);
-    const date = `${time.getFullYear()}-${time.getMonth()}-${time.getDate()}`;
+    const date = `${time.getFullYear()}-${time.getMonth()+1}-${time.getDate()}`;
 
     const virtue = virtuesDict[getVirtue(entry.date)];
 
