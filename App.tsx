@@ -25,21 +25,73 @@ interface Virtue {
 }
 
 const virtuesDict: Record<string, Virtue> = {
-  'Temperance': { name: 'Temperance', emoji: '🧘‍♂️', description: 'Eat not to dullness; drink not to elevation.' },
-  'Silence': { name: 'Silence', emoji: '🕊️', description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.' },
-  'Order': { name: 'Order', emoji: '🗂️', description: 'Let all things have their place; let each part of your business have its time.' },
-  'Resolution': { name: 'Resolution', emoji: '💪', description: 'Resolve to perform what you ought; perform without fail what you resolve.' },
-  'Frugality': { name: 'Frugality', emoji: '🌱', description: 'Make no expense but to do good to others or yourself; waste nothing.' },
-  'Industry': { name: 'Industry', emoji: '🛠️', description: 'Always be engaged in something useful; avoid idleness.' },
-  'Sincerity': { name: 'Sincerity', emoji: '🤝', description: 'Use no hurtful deceit; think innocently and justly, and speak accordingly.' },
-  'Justice': { name: 'Justice', emoji: '⚖️', description: 'Wrong none by doing injuries or omitting benefits that are your duty.' },
-  'Moderation': { name: 'Moderation', emoji: '🛑', description: 'Avoid extremes; forbear resenting injuries as much as you think they deserve.' },
-  'Cleanliness': { name: 'Cleanliness', emoji: '✨', description: 'Keep your body, clothes, and habitation clean.' },
-  'Tranquility': { name: 'Tranquility', emoji: '🌳', description: 'Be not disturbed at trifles, or at accidents common or unavoidable.' },
+  'Temperance': {
+    name: 'Temperance',
+    emoji: '🧘‍♂️',
+    description: 'Eat not to dullness; drink not to elevation.',
+  },
+  'Silence': {
+    name: 'Silence',
+    emoji: '🕊️',
+    description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.',
+  },
+  'Order': {
+    name: 'Order',
+    emoji: '🗂️',
+    description: 'Let all things have their place; let each part of your business have its time.',
+  },
+  'Resolution': {
+    name: 'Resolution',
+    emoji: '💪',
+    description: 'Resolve to perform what you ought; perform without fail what you resolve.',
+  },
+  'Frugality': {
+    name: 'Frugality',
+    emoji: '🌱',
+    description: 'Make no expense but to do good to others or yourself; waste nothing.',
+  },
+  'Industry': {
+    name: 'Industry',
+    emoji: '🛠️',
+    description: 'Always be engaged in something useful; avoid idleness.',
+  },
+  'Sincerity': {
+    name: 'Sincerity',
+    emoji: '🤝',
+    description: 'Use no hurtful deceit; think innocently and justly, and speak accordingly.',
+  },
+  'Justice': {
+    name: 'Justice',
+    emoji: '⚖️',
+    description: 'Wrong none by doing injuries or omitting benefits that are your duty.',
+  },
+  'Moderation': {
+    name: 'Moderation',
+    emoji: '🛑',
+    description: 'Avoid extremes; forbear resenting injuries as much as you think they deserve.',
+  },
+  'Cleanliness': {
+    name: 'Cleanliness',
+    emoji: '✨',
+    description: 'Keep your body, clothes, and habitation clean.',
+  },
+  'Tranquility': {
+    name: 'Tranquility',
+    emoji: '🌳',
+    description: 'Be not disturbed at trifles, or at accidents common or unavoidable.',
+  },
   // This is actually 'Chastity' but reworded to purity to avoid sexual connotations.
-  'Purity': { name: 'Purity', emoji: '❤️', description: 'Use actions thoughtfully, aligning them with their purpose; never to dullness, weakness, or the injury of your own or another’s peace or reputation.' },
+  'Purity': {
+    name: 'Purity',
+    emoji: '❤️',
+    description: 'Use actions thoughtfully, aligning them with their purpose; never to dullness, weakness, or the injury of your own or another’s peace or reputation.',
+  },
   // Taken Eliezer Yudkowsky description as "Imitate Jesus and Socrates" people may not know.
-  'Humility': { name: 'Humility', emoji: '😊', description: 'Take specific actions in anticipation of your own errors' },
+  'Humility': {
+    name: 'Humility',
+    emoji: '😊',
+    description: 'Take specific actions in anticipation of your own errors',
+  },
 };
 
 const virtues = Object.keys(virtuesDict);
