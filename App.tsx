@@ -22,6 +22,7 @@ interface Virtue {
   name: string;
   emoji: string;
   description: string;
+  examples: string[];
 }
 
 const virtuesDict: Record<string, Virtue> = {
@@ -29,71 +30,131 @@ const virtuesDict: Record<string, Virtue> = {
     name: 'Temperance',
     emoji: '🧘‍♂️',
     description: 'Eat not to dullness; drink not to elevation.',
+    examples: [
+      'Choose a small portion of dessert, savoring each bite.',
+      'Skip the extra helping when already satisfied.',
+    ],
   },
   'Silence': {
     name: 'Silence',
     emoji: '🕊️',
     description: 'Speak only when it benefits others or yourself. Avoid trifling conversation.',
+    examples: [
+      'Listen intently when a friend is sharing their struggles.',
+      'Pause before speaking, ensuring your words add value.',
+      'Skip gossip and steer the conversation to shared interests.',
+    ],
   },
   'Order': {
     name: 'Order',
     emoji: '🗂️',
     description: 'Let all things have their place; let each part of your business have its time.',
+    examples: [
+      'Organize your workspace before starting a task.',
+      'Plan your errands in a logical route to save time.',
+      'Schedule focused time for a project, free from interruptions.',
+    ],
   },
   'Resolution': {
     name: 'Resolution',
     emoji: '💪',
     description: 'Resolve to perform what you ought; perform without fail what you resolve.',
+    examples: [
+      'Finish the chapter you started before putting the book down.',
+      "Complete the task you've been procrastinating on today.",
+      'Following through on promises.',
+    ],
   },
   'Frugality': {
     name: 'Frugality',
     emoji: '🌱',
     description: 'Make no expense but to do good to others or yourself; waste nothing.',
+    examples: [
+      'Packing a lunch instead of eating out.',
+      'Cancel unused subscriptions to free up resources.',
+    ],
   },
   'Industry': {
     name: 'Industry',
     emoji: '🛠️',
     description: 'Always be engaged in something useful; avoid idleness.',
+    examples: [
+      'Using free time to learn a new skill.',
+      'Volunteering time to a worthwhile cause.',
+      'Completing tasks promptly and efficiently.',
+    ],
   },
   'Sincerity': {
     name: 'Sincerity',
     emoji: '🤝',
     description: 'Use no hurtful deceit; think innocently and justly, and speak accordingly.',
+    examples: [
+      "Gently admit when you don't know the answer instead of bluffing.",
+      'Thank someone genuinely for their effort, even if small.',
+      'Speak honestly about your needs while remaining kind.',
+    ],
   },
   'Justice': {
     name: 'Justice',
     emoji: '⚖️',
     description: 'Wrong none by doing injuries or omitting benefits that are your duty.',
+    examples: [
+      "Speak up for a coworker when they're unfairly blamed.",
+      'Share credit with everyone who contributed to a project.',
+      'Return a lost wallet you find, ensuring its owner gets it back.',
+    ],
   },
   'Moderation': {
     name: 'Moderation',
     emoji: '🛑',
     description: 'Avoid extremes; forbear resenting injuries as much as you think they deserve.',
+    examples: [
+      'Take a break when working too long, but not too often.',
+      'Walk away from a heated argument to cool down.',
+      'Enjoying indulgences in reasonable amounts.',
+    ],
   },
   'Cleanliness': {
     name: 'Cleanliness',
     emoji: '✨',
     description: 'Keep your body, clothes, and habitation clean.',
+    examples: [
+      'Practicing good hygiene.',
+      'Maintaining a tidy living space.',
+      'Wash the dishes immediately after eating.',
+    ],
   },
   'Tranquility': {
     name: 'Tranquility',
     emoji: '🌳',
     description: 'Be not disturbed at trifles, or at accidents common or unavoidable.',
+    examples: [
+      'Focusing on solutions rather than dwelling on problems.',
+      'Accepting that some things are beyond control.',
+      'Breathe deeply when you spill your coffee instead of getting upset.',
+    ],
   },
-  // This is actually 'Chastity' but reworded to purity to avoid sexual connotations.
   'Purity': {
     name: 'Purity',
     emoji: '❤️',
     description: 'Use actions thoughtfully, aligning them with their purpose; never to dullness, weakness, or the injury of your own or another’s peace or reputation.',
+    examples: [
+      'Making conscious choices that align with personal values.',
+      'Speak respectfully about someone, even in their absence.',
+      'Pause to reflect before making an impulsive choice.',
+    ],
   },
-  // Taken Eliezer Yudkowsky description as "Imitate Jesus and Socrates" people may not know.
   'Humility': {
     name: 'Humility',
     emoji: '😊',
     description: 'Take specific actions in anticipation of your own errors',
+    examples: [
+      'Seeking feedback from others.',
+      'Acknowledging limitations and asking for help when needed.',
+      'Double-check your work before submitting it.',
+    ],
   },
 };
-
 const virtues = Object.keys(virtuesDict);
 
 // FIXME: remove globalDay referencing, only for developer mode.
@@ -422,6 +483,34 @@ const InfoIcon = (): React.JSX.Element => {
   );
 };
 
+interface VirtueIconProps {
+  virtue: Virtue
+}
+
+const VirtueIcon = ({virtue}: VirtueIconProps): React.JSX.Element => {
+  const messages = [
+    virtue.emoji,
+    virtue.description,
+    'examples:',
+    virtue.examples.join('\n\n'),
+  ];
+
+  const handlePress = () => {
+    Alert.alert(
+      virtue.name,
+      messages.join('\n\n'),
+
+      [{ text: 'got it!' }]
+    );
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      <Text style={styles.infoText}>ℹ️</Text>
+    </TouchableOpacity>
+  );
+};
+
 
 interface HistoricalProps {
   entries: Entry[];
@@ -536,6 +625,7 @@ function Daily(): React.JSX.Element {
 
       <View style={styles.middleSection}>
         <Text style={styles.virtue}>{virtueDetails.name}</Text>
+        <VirtueIcon virtue={virtueDetails} />
         <Text style={styles.details}>{virtueDetails.description}</Text>
         <Text style={styles.virtue}>
           {virtueDetails.emoji}
