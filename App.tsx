@@ -1,7 +1,9 @@
-import React, { useReducer, useEffect } from 'react';
+import React, { useReducer, useEffect, useState } from 'react';
 import {
   Alert,
+  Modal,
   Platform,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -14,6 +16,7 @@ import {
 } from 'react-native';
 
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
@@ -299,6 +302,7 @@ const currentStreak = (entries: Entry[]): number => {
 
 interface UserState {
   entries: Entry[]
+  notificationTime: Date;
 }
 
 const getVirtue = (yyyymmdd: string): string => {
@@ -311,20 +315,39 @@ const todaysVirtue = (): string => {
 
 const initialState: UserState = {
   entries: [],
+  notificationTime: new Date(),
 };
 
-const scheduleNotificationForTomorrow = () => {
-  const tom = tomorrow();
-  tom.setHours(8, 5, 0, 0);
-
-  const virtue = virtuesDict[getVirtue(dateString(tom))];
+const queueNotification = (dateAndTime: Date) => {
+  const virtue = virtuesDict[getVirtue(dateString(dateAndTime))];
 
   PushNotificationIOS.addNotificationRequest({
-    id: dateString(tom),
-    fireDate: tom,
+    id: dateString(dateAndTime),
+    fireDate: dateAndTime,
     title: `${virtue.name} ${virtue.emoji}`,
     body: virtue.description,
   });
+};
+
+const scheduleNotificationForTodayAndTomorrow = (time: Date) => {
+  const hours = time.getHours();
+  const mins = time.getMinutes();
+  const tod = fromTimestamp(today());
+  tod.setHours(hours, mins, 0, 0);
+  queueNotification(tod);
+  const tom = tomorrow();
+  tom.setHours(hours, mins, 0, 0);
+  queueNotification(tom);
+};
+
+const scheduleNotifications = async (time: Date): Promise<void> => {
+  if (Platform.OS === 'ios') {
+    const notificationResponse = await PushNotificationIOS.requestPermissions();
+
+    if (notificationResponse.authorizationStatus === 2) {
+      scheduleNotificationForTodayAndTomorrow(time);
+    }
+  }
 };
 
 
@@ -593,30 +616,34 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
   );
 }
 
+const serializeTime = (date: Date): string => `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+const deserializeTime = (hhmm: string): Date => {
+  const [hours, minutes] = hhmm.split(':');
+  const deserialized = new Date();
+  deserialized.setHours(Number(hours));
+  deserialized.setMinutes(Number(minutes));
+  return deserialized;
+};
+
+
 function Daily(): React.JSX.Element {
   const [state, dispatch] = useReducer(reducer, initialState);
-
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
-    const scheduleNotification = async (): Promise<void> => {
-      if (Platform.OS === 'ios') {
-        const notificationResponse = await PushNotificationIOS.requestPermissions();
-
-        if (notificationResponse.authorizationStatus === 2) {
-          scheduleNotificationForTomorrow();
-        }
-      }
-    };
 
     const loadState = async () => {
       try {
         const entriesString = await AsyncStorage.getItem('ENTRIES');
+        const timeString = await AsyncStorage.getItem('TIME');
         const entries = entriesString != null ? JSON.parse(entriesString) as Entry[] : [];
+        const notificationTime = timeString !== null ? deserializeTime(timeString) : deserializeTime('08:05');
 
         dispatch({
           type: 'LOAD_STATE',
           payload: {
             entries: entries,
+            notificationTime,
           },
         });
       } catch (error) {
@@ -624,22 +651,25 @@ function Daily(): React.JSX.Element {
       }
     };
 
-
-    scheduleNotification();
     loadState();
   }, []);
 
+  const saveState = async (userState: UserState) => {
+    try {
+      const uniqueEntries = Object.values(entriesByDate(userState.entries));
+      await AsyncStorage.setItem('ENTRIES', JSON.stringify(uniqueEntries));
+      const timeString = serializeTime(new Date());
+      await AsyncStorage.setItem('TIME', timeString);
+
+    } catch (error) {
+      console.error('Failed to save state:', error);
+    }
+  };
+
   useEffect(() => {
-    const saveState = async () => {
-      try {
-        const uniqueEntries = Object.values(entriesByDate(state.entries));
-        await AsyncStorage.setItem('ENTRIES', JSON.stringify(uniqueEntries));
-      } catch (error) {
-        console.error('Failed to save state:', error);
-      }
-    };
-    saveState();
-  }, [state.entries]);
+    scheduleNotifications(state.notificationTime);
+    saveState(state);
+  }, [state]);
 
   const handlePass = () => {
     dispatch({ type: 'PASS' });
@@ -663,8 +693,55 @@ function Daily(): React.JSX.Element {
       <View style={styles.topSection}>
         <Text style={styles.leftScore}>🔥 {currentStreak(state.entries)} 🌸 {scoring(state.entries)} 🔴 {failures(state.entries)}</Text>
         <View>
-          <InfoIcon />
+          {/* eslint-disable-next-line react-native/no-inline-styles */}
+          <View style={{display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+            <View>
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                  setModalVisible(!modalVisible);
+                }}>
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <Text style={styles.modalText}>receive notifications at</Text>
+                    {/* eslint-disable-next-line react-native/no-inline-styles */}
+                    <View style={{ padding: 20 }}>
+                      <DateTimePicker
+                        value={state.notificationTime}
+                        mode="time"
+                        is24Hour={true}
+                        display="default"
+                        onChange={(_, selectedTime) => {
+                          dispatch({
+                            type: 'LOAD_STATE',
+                            payload: {
+                              ...state,
+                              notificationTime: selectedTime || state.notificationTime,
+                            },
+                          });
+                        }}
+                      />
+                    </View>
+
+                    <Pressable
+                      style={[styles.button, styles.buttonClose]}
+                      onPress={() => setModalVisible(!modalVisible)}>
+                      <Text style={styles.textStyle}>OK</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </Modal>
+              <Pressable
+                onPress={() => setModalVisible(true)}>
+                <Text style={styles.textStyle}>⚙️</Text>
+              </Pressable>
+            </View>
+            <InfoIcon />
+          </View>
         </View>
+
       </View>
 
       <View style={styles.middleSection}>
@@ -820,6 +897,41 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView: {
+    margin: 20,
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    backgroundColor: 'white',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonClose: {
+    borderBlockColor: 'black',
+  },
+  textStyle: {
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  modalText: {
+    marginBottom: 15,
   },
 });
 
