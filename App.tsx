@@ -1,6 +1,7 @@
 import React, { useReducer, useEffect } from 'react';
 import {
   Alert,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -11,6 +12,8 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+
+import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
@@ -160,15 +163,27 @@ const virtues = Object.keys(virtuesDict);
 // FIXME: remove globalDay referencing, only for developer mode.
 // var globalDay = new Date();
 
-const today = (): string => {
-  const now = new Date();
-  // const now = globalDay;
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+const dateString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${year}${month}${day}`;
 };
 
+const today = (): string => {
+  const now = new Date();
+  // const now = globalDay;
+  return dateString(now);
+};
+
+
+const tomorrow = (): Date => {
+  const now = new Date();
+  // const now = globalDay;
+  const nextDay = new Date(now);
+  nextDay.setDate(now.getDate() + 1);
+  return nextDay;
+};
 
 const fromTimestamp = (yyyymmdd: string): Date => {
   const yyyymmddString = yyyymmdd;
@@ -298,6 +313,21 @@ const initialState: UserState = {
   entries: [],
 };
 
+const scheduleNotificationForTomorrow = () => {
+  const tom = tomorrow();
+  tom.setHours(8, 5, 0, 0);
+
+  const virtue = virtuesDict[getVirtue(dateString(tom))];
+
+  PushNotificationIOS.addNotificationRequest({
+    id: dateString(tom),
+    fireDate: tom,
+    title: `${virtue.name} ${virtue.emoji}`,
+    body: virtue.description,
+  });
+};
+
+
 function reducer(state: UserState, action: {type: string, payload?: UserState, text?: string}): UserState {
   switch (action.type) {
     case 'LOAD_STATE':
@@ -407,7 +437,7 @@ function HistoricalEntry({ historicalEntry }: {historicalEntry: null | Entry}): 
 
     const statusEmoji = entry.isSuccess ? '🌸' : '🔴';
     const time = fromTimestamp(entry.date);
-    const date = `${time.getFullYear()}-${time.getMonth()+1}-${time.getDate()}`;
+    const date = `${time.getFullYear()}-${time.getMonth() + 1}-${time.getDate()}`;
 
     const virtue = virtuesDict[getVirtue(entry.date)];
 
@@ -566,7 +596,18 @@ function Historical({ entries }: HistoricalProps): React.JSX.Element {
 function Daily(): React.JSX.Element {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+
   useEffect(() => {
+    const scheduleNotification = async (): Promise<void> => {
+      if (Platform.OS === 'ios') {
+        const notificationResponse = await PushNotificationIOS.requestPermissions();
+
+        if (notificationResponse.authorizationStatus === 2) {
+          scheduleNotificationForTomorrow();
+        }
+      }
+    };
+
     const loadState = async () => {
       try {
         const entriesString = await AsyncStorage.getItem('ENTRIES');
@@ -582,6 +623,9 @@ function Daily(): React.JSX.Element {
         console.error('Failed to load state:', error);
       }
     };
+
+
+    scheduleNotification();
     loadState();
   }, []);
 

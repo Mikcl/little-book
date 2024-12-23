@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "ios": "react-native run-ios",
+    "ios": "react-native run-ios --simulator='iPhone 15 Pro'",
     "lint": "eslint .",
     "format": "eslint --fix .",
     "check": "tsc --noEmit",
@@ -12,8 +12,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-community/push-notification-ios": "^1.11.0",
     "react": "18.3.1",
-    "react-native": "0.76.4"
+    "react-native": "0.76.4",
+    "react-native-permissions": "^5.2.1",
+    "react-native-push-notification": "^8.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
